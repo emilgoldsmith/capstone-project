@@ -1,6 +1,7 @@
 package example
 
 import scala.io.Source;
+import scala.collection.JavaConversions._
 
 import java.util.Collection;
 import java.util.Vector;
@@ -8,6 +9,12 @@ import java.util.Vector;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.amazonaws.services.ec2.model.StartInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesRequest;
+import com.amazonaws.services.ec2.model.DescribeInstancesResult;
+import com.amazonaws.services.ec2.model.Reservation;
+import com.amazonaws.services.ec2.model.Instance;
+import com.amazonaws.services.ec2.model.StopInstancesRequest;
+
 
 object Hello {
   var ids : Array[String] = Array();
@@ -22,6 +29,32 @@ object Hello {
     val startRequest : StartInstancesRequest = new StartInstancesRequest()
       .withInstanceIds(serversToStartJavaCollection);
     this.client.startInstances(startRequest);
+    println("Servers successfully started");
+  }
+
+  def getRunningInstanceIds() : Vector[String] = {
+    var runningInstanceIds : Vector[String] = new Vector[String]();
+    val response : DescribeInstancesResult = this.client.describeInstances(new DescribeInstancesRequest);
+    for (reservation : Reservation <- response.getReservations()) {
+      for (instance : Instance <- reservation.getInstances()) {
+        if (instance.getState().getName() == "running") {
+          runningInstanceIds.add(instance.getInstanceId());
+        }
+      }
+    }
+    return runningInstanceIds;
+  }
+
+  def stopServers() : Unit = {
+    val instanceIds : Vector[String] = this.getRunningInstanceIds();
+    if (instanceIds.length == 0) {
+      println("No instances currently running so no instances stopped");
+      return;
+    }
+    val request : StopInstancesRequest = new StopInstancesRequest()
+      .withInstanceIds(instanceIds);
+    this.client.stopInstances(request);
+    println("Servers successfully stopped");
   }
 
   def main(args: Array[String]) {
@@ -61,8 +94,10 @@ object Hello {
         System.exit(1);
       }
       this.startServers(startIndex - 1, endIndex);
+    } else if (args.length == 1 && args(0) == "stop") {
+      this.stopServers();
     } else {
-      println("Usage: start <numServersToStart> || start <startIndex> <endIndex>")
+      println("Usage:\nstart <numServersToStart>\nOR\nstart <startIndex> <endIndex>\nOR\nstop")
       System.exit(1);
     }
   }
