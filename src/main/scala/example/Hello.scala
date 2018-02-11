@@ -13,8 +13,8 @@ object Hello {
   var ids : Array[String] = Array();
   val client : AmazonEC2 = AmazonEC2ClientBuilder.defaultClient();
 
-  def startServers(numToStart : Int) : Unit = {
-    val serversToStart : Array[String] = this.ids.take(numToStart)
+  def startServers(startIndex : Int, endIndex : Int) : Unit = {
+    val serversToStart : Array[String] = this.ids.slice(startIndex, endIndex)
     val serversToStartJavaCollection : Collection[String] = new Vector[String]();
     for (x <- serversToStart) {
       serversToStartJavaCollection.add(x);
@@ -37,23 +37,32 @@ object Hello {
         x.substring(1, x.length() - 1)
     )
 
-    if (args.length == 2 && args(0) == "start") {
-      var numServersToStart : Int = -1;
+    if ((args.length == 2 || args.length == 3) && args(0) == "start") {
+      var startIndex : Int = -1;
+      var endIndex : Int = -1;
       try {
-        numServersToStart = args(1).toInt;
+        if (args.length == 2) {
+          endIndex = args(1).toInt;
+          startIndex = 1;
+        } else {
+          // it must be 3 because of top level conditional
+          startIndex = args(1).toInt;
+          endIndex = args(2).toInt;
+        }
       } catch {
         case e: NumberFormatException => {
-          println("invalid number argument to start command");
+          println("invalid integer argument to start command");
           System.exit(1);
         }
       }
-      if (numServersToStart < 1 || numServersToStart > 10) {
-        println("Start command error: Number of servers to start must be between 1 and 10");
+      if (startIndex < 1 || startIndex > 10 ||
+          endIndex < 1 || endIndex > 10) {
+        println("Start command error: integer arguments must be between 1 and 10");
         System.exit(1);
       }
-      this.startServers(numServersToStart);
+      this.startServers(startIndex - 1, endIndex);
     } else {
-      println("Usage: start <numServersToStart>")
+      println("Usage: start <numServersToStart> || start <startIndex> <endIndex>")
       System.exit(1);
     }
   }
