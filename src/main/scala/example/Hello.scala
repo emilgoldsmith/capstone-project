@@ -45,6 +45,15 @@ object Hello {
     return runningInstanceIds;
   }
 
+  def reportStatus() : Unit = {
+    val response : DescribeInstancesResult = this.client.describeInstances(new DescribeInstancesRequest);
+    for (reservation : Reservation <- response.getReservations()) {
+      for (instance : Instance <- reservation.getInstances()) {
+        println(s"${instance.getInstanceId()}: ${instance.getState().getName()}");
+      }
+    }
+  }
+
   def stopServers() : Unit = {
     val instanceIds : Vector[String] = this.getRunningInstanceIds();
     if (instanceIds.length == 0) {
@@ -96,8 +105,10 @@ object Hello {
       this.startServers(startIndex - 1, endIndex);
     } else if (args.length == 1 && args(0) == "stop") {
       this.stopServers();
+    } else if (args.length == 1 && args(0) == "status") {
+      this.reportStatus();
     } else {
-      println("Usage:\nstart <numServersToStart>\nOR\nstart <startIndex> <endIndex>\nOR\nstop")
+      println("Usage:\nstart <numServersToStart>\nOR\nstart <startIndex> <endIndex>\nOR\nstop\nOR\nstatus")
       System.exit(1);
     }
   }
