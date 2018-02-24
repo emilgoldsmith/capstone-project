@@ -13,17 +13,18 @@ import java.util.Scanner;
 public class Producer {
     private static Scanner in;
     public static void main(String[] argv)throws Exception {
-        if (argv.length != 1) {
-            System.err.println("Please specify 1 parameters ");
+        if (argv.length != 2) {
+            System.err.println("Usage: %s <host:port> <topicName>");
             System.exit(-1);
         }
-        String topicName = argv[0];
+        String hostAndPort = argv[0];
+        String topicName = argv[1];
         in = new Scanner(System.in);
         System.out.println("Enter message(type exit to quit)");
 
         //Configure the Producer
         Properties configProperties = new Properties();
-        configProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,"localhost:9092");
+        configProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,hostAndPort);
         configProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,"org.apache.kafka.common.serialization.ByteArraySerializer");
         configProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,"org.apache.kafka.common.serialization.StringSerializer");
 

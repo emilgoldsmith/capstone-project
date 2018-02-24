@@ -17,14 +17,15 @@ public class Consumer {
     private static Scanner in;
 
     public static void main(String[] argv)throws Exception{
-        if (argv.length != 2) {
-            System.err.printf("Usage: %s <topicName> <groupId>\n",
+        if (argv.length != 3) {
+            System.err.printf("Usage: %s <host:port> <topicName> <groupId>\n",
                     Consumer.class.getSimpleName());
             System.exit(-1);
         }
         in = new Scanner(System.in);
-        String topicName = argv[0];
-        String groupId = argv[1];
+        String hostAndPort = argv[0];
+        String topicName = argv[1];
+        String groupId = argv[2];
 
         ConsumerThread consumerRunnable = new ConsumerThread(topicName,groupId);
         consumerRunnable.start();
@@ -48,11 +49,11 @@ public class Consumer {
         }
         public void run() {
             Properties configProperties = new Properties();
-            configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+            configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, hostAndPort);
             configProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.ByteArrayDeserializer");
             configProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringDeserializer");
             configProperties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-            configProperties.put(ConsumerConfig.CLIENT_ID_CONFIG, "simple");
+            configProperties.put(ConsumerConfig.CLIENT_ID_CONFIG, "dummy");
 
             //Figure out where to start processing messages from
             kafkaConsumer = new KafkaConsumer<String, String>(configProperties);
