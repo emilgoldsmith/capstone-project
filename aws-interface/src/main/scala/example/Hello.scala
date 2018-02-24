@@ -67,17 +67,13 @@ object Hello {
   }
 
   def main(args: Array[String]) {
-    // Read server ids
-    val bufferedSource = Source.fromFile("resources/server_ids.json");
-    val lines : Array[String] = bufferedSource.getLines.toArray;
-    val partiallyCleanedIds : Array[String] = lines.slice(1, lines.size - 1).map(x => x.trim);
-    this.ids = partiallyCleanedIds.map(x =>
-      if (x(x.length() - 1) == ',')
-        x.substring(1, x.length() - 2)
-      else
-        // This is the case where it's the last element in the array
-        x.substring(1, x.length() - 1)
-    )
+    // Get server ids, we assume that they come in in a determinstically ordered fashion
+    val response : DescribeInstancesResult = this.client.describeInstances(new DescribeInstancesRequest);
+    for (reservation : Reservation <- response.getReservations()) {
+      for (instance : Instance <- reservation.getInstances()) {
+        this.ids = this.ids :+ instance.getInstanceId();
+      }
+    }
 
     if ((args.length == 2 || args.length == 3) && args(0) == "start") {
       var startIndex : Int = -1;
