@@ -2,7 +2,7 @@
 
 sudo apt update
 
-sudo apt-get install \
+sudo apt install -y \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -17,4 +17,6 @@ sudo add-apt-repository \
 
 sudo apt update
 
-sudo apt install docker-ce
+sudo apt install -y docker-ce
+
+sudo docker pull emilgoldsmithcapstone/base-image
