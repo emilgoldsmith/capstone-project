@@ -27,7 +27,7 @@ public class Consumer {
         String topicName = argv[1];
         String groupId = argv[2];
 
-        ConsumerThread consumerRunnable = new ConsumerThread(topicName,groupId);
+        ConsumerThread consumerRunnable = new ConsumerThread(hostAndPort, topicName,groupId);
         consumerRunnable.start();
         String line = "";
         while (!line.equals("exit")) {
@@ -39,11 +39,13 @@ public class Consumer {
     }
 
     private static class ConsumerThread extends Thread{
+        private String hostAndPort;
         private String topicName;
         private String groupId;
         private KafkaConsumer<String,String> kafkaConsumer;
 
-        public ConsumerThread(String topicName, String groupId){
+        public ConsumerThread(String hostAndPort, String topicName, String groupId){
+            this.hostAndPort = hostAndPort;
             this.topicName = topicName;
             this.groupId = groupId;
         }
