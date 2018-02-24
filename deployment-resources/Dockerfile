@@ -6,9 +6,11 @@ RUN apt install -y openjdk-8-jdk
 
 RUN apt install -y wget
 
-ADD https://github.com/emilgoldsmith/capstone-project/archive/master.zip
+RUN apt install -y zip
 
-RUN unzip master.zip && rm -rf master.zip
+ADD https://github.com/emilgoldsmith/capstone-project/archive/master.zip github-repo.zip
+
+RUN unzip github-repo.zip && rm -rf github-repo.zip
 
 WORKDIR /capstone-project-master
 
