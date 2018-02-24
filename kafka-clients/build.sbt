@@ -6,8 +6,8 @@ lazy val root = (project in file("."))
       scalaVersion := "2.12.4",
       version      := "0.1.0-SNAPSHOT"
     )),
-    name := "aws_interface",
+    name := "kafka_clients",
     libraryDependencies ++= Seq(
-      "com.amazonaws" % "aws-java-sdk-ec2" % "1.11.274"
+      "org.apache.kafka" %% "kafka" % "1.0.0"
     ),
   )

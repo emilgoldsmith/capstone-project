@@ -1,4 +1,4 @@
-package example
+package aws_interface
 
 import scala.io.Source;
 import scala.collection.JavaConversions._
@@ -16,7 +16,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.ec2.model.StopInstancesRequest;
 
 
-object Hello {
+object AwsInterface {
   var ids : Array[String] = Array();
   val client : AmazonEC2 = AmazonEC2ClientBuilder.defaultClient();
 
