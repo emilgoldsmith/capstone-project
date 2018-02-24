@@ -35,3 +35,5 @@ RUN tar -xvzf sbt.tgz
 RUN mv sbt /.sbt && rm -rf sbt.tgz
 
 RUN ln -s /.sbt/bin/sbt /bin/
+
+RUN cd kafka-clients && sbt stage
