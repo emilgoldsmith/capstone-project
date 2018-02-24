@@ -25,3 +25,13 @@ ENV KAFKA_DIRECTORY /capstone-project-master/.kafka
 RUN rm -rf kafka.tgz
 
 EXPOSE 2181 9092
+
+# Install SBT
+
+RUN wget -O sbt.tgz https://github.com/sbt/sbt/releases/download/v1.1.0/sbt-1.1.0.tgz
+
+RUN tar -xvzf sbt.tgz
+
+RUN mv sbt /.sbt && rm -rf sbt.tgz
+
+RUN ln -s /.sbt/bin/sbt /bin/
