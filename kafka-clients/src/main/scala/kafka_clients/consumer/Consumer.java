@@ -7,48 +7,45 @@ import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
 
 import java.util.Arrays;
+import java.util.Observer;
+import java.util.Observable;
 import java.util.Properties;
-import java.util.Scanner;
 
 /**
- * Created by sunilpatil on 12/28/15.
+ * inspired by creation of sunilpatil on 12/28/15.
  */
-public class Consumer {
-    private static Scanner in;
+public class Consumer extends Observable {
+    private ConsumerThread consumerRunnable;
 
-    public static void main(String[] argv)throws Exception{
-        if (argv.length != 3) {
-            System.err.printf("Usage: %s <host:port> <topicName> <groupId>\n",
-                    Consumer.class.getSimpleName());
-            System.exit(-1);
-        }
-        in = new Scanner(System.in);
-        String hostAndPort = argv[0];
-        String topicName = argv[1];
-        String groupId = argv[2];
-
-        ConsumerThread consumerRunnable = new ConsumerThread(hostAndPort, topicName,groupId);
+    public Consumer(String hostAndPort, String topicName, String groupId) throws Exception {
+        consumerRunnable = new ConsumerThread(hostAndPort, topicName, groupId, this);
         consumerRunnable.start();
-        String line = "";
-        while (!line.equals("exit")) {
-            line = in.next();
-        }
-        consumerRunnable.getKafkaConsumer().wakeup();
-        System.out.println("Stopping consumer .....");
-        consumerRunnable.join();
     }
 
-    private static class ConsumerThread extends Thread{
+    public void kill() throws Exception {
+      consumerRunnable.getKafkaConsumer().wakeup();
+      consumerRunnable.join();
+    }
+
+    public void broadcastMessage(String message) {
+      this.setChanged();
+      this.notifyObservers(message);
+    }
+
+    private static class ConsumerThread extends Thread {
         private String hostAndPort;
         private String topicName;
         private String groupId;
         private KafkaConsumer<String,String> kafkaConsumer;
+        private Consumer host;
 
-        public ConsumerThread(String hostAndPort, String topicName, String groupId){
+        public ConsumerThread(String hostAndPort, String topicName, String groupId, Consumer host){
             this.hostAndPort = hostAndPort;
             this.topicName = topicName;
             this.groupId = groupId;
+            this.host = host;
         }
+
         public void run() {
             Properties configProperties = new Properties();
             configProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, hostAndPort);
@@ -65,7 +62,7 @@ public class Consumer {
                 while (true) {
                     ConsumerRecords<String, String> records = kafkaConsumer.poll(100);
                     for (ConsumerRecord<String, String> record : records)
-                        System.out.println(record.value());
+                        this.host.broadcastMessage(record.value());
                 }
             }catch(WakeupException ex){
                 System.out.println("Exception caught " + ex.getMessage());
@@ -79,4 +76,3 @@ public class Consumer {
         }
     }
 }
-
