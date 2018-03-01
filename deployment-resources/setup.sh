@@ -34,7 +34,7 @@ tar -xvzf sbt.tgz
 
 mv sbt ~/.sbt && rm -rf sbt.tgz
 
-ln -s ~/.sbt/bin/sbt /bin/
+sudo ln -s ~/.sbt/bin/sbt /bin/
 
 # Get Github repo last so it doesn't mess with the caching above
 
