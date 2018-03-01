@@ -1,7 +1,7 @@
 #!/bin/bash
 
-KAFKA_SERVER_PID=$(cat $KAFKA_DIRECTORY/../.kafka-broker.PID)
-ZOOKEEPER_PID=$(cat $KAFKA_DIRECTORY/../.zookeeper.PID)
+KAFKA_SERVER_PID=$(cat ~/kafka-broker.PID)
+ZOOKEEPER_PID=$(cat ~/zookeeper.PID)
 
 kill -s TERM $KAFKA_SERVER_PID
 

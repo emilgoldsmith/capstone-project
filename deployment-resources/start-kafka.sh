@@ -12,7 +12,7 @@ cd $KAFKA_DIRECTORY
 bin/zookeeper-server-start.sh config/zookeeper.properties > /dev/null &
 
 # Save PID
-echo $! > $KAFKA_DIRECTORY/../.zookeeper.PID
+echo $! > ~/zookeeper.PID
 
 sleep 3
 
@@ -20,7 +20,7 @@ sleep 3
 bin/kafka-server-start.sh config/server.properties > /dev/null &
 
 # Save PID
-echo $! > $KAFKA_DIRECTORY/../.kafka-broker.PID
+echo $! > ~/kafka-broker.PID
 
 sleep 5
 # Create topic from commandline arguments
