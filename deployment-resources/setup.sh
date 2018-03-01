@@ -2,17 +2,17 @@
 
 cd ~
 
-apt update
+sudo apt update
 
 # Install Java
 
-apt install -y openjdk-8-jdk
+sudo apt install -y openjdk-8-jdk
 
 # Install a few needed dependencies
 
-apt install -y wget
+sudo apt install -y wget
 
-apt install -y zip
+sudo apt install -y zip
 
 # Install Kafka
 
