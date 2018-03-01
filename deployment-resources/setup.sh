@@ -4,7 +4,7 @@ cd ~
 
 sudo apt update
 
-if [[ $? -ne 0 ]];
+if [[ $? -ne 0 && $? -ne 100 ]];
 then
   echo "Error updating" >&2
   exit 1
