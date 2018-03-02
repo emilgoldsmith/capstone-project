@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Observer;
 import java.util.Observable;
 import java.util.Properties;
+import java.util.Collection;
 
 /**
  * inspired by creation of sunilpatil on 12/28/15.
@@ -17,8 +18,8 @@ import java.util.Properties;
 public class Consumer extends Observable {
     private ConsumerThread consumerRunnable;
 
-    public Consumer(String hostAndPort, String topicName, String groupId) throws Exception {
-        consumerRunnable = new ConsumerThread(hostAndPort, topicName, groupId, this);
+    public Consumer(String hostAndPort, Collection<String> topicNames, String groupId) throws Exception {
+        consumerRunnable = new ConsumerThread(hostAndPort, topicNames, groupId, this);
         consumerRunnable.start();
     }
 
@@ -34,14 +35,14 @@ public class Consumer extends Observable {
 
     private static class ConsumerThread extends Thread {
         private String hostAndPort;
-        private String topicName;
+        private Collection<String> topicNames;
         private String groupId;
         private KafkaConsumer<String,String> kafkaConsumer;
         private Consumer host;
 
-        public ConsumerThread(String hostAndPort, String topicName, String groupId, Consumer host){
+        public ConsumerThread(String hostAndPort, Collection<String> topicNames, String groupId, Consumer host){
             this.hostAndPort = hostAndPort;
-            this.topicName = topicName;
+            this.topicNames = topicNames;
             this.groupId = groupId;
             this.host = host;
         }
@@ -56,7 +57,7 @@ public class Consumer extends Observable {
 
             //Figure out where to start processing messages from
             kafkaConsumer = new KafkaConsumer<String, String>(configProperties);
-            kafkaConsumer.subscribe(Arrays.asList(topicName));
+            kafkaConsumer.subscribe(this.topicNames);
             //Start processing messages
             try {
                 while (true) {
