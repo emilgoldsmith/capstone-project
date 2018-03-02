@@ -1,7 +1,7 @@
-package main;
+package group_by.simple;
 
-import kafka_clients.consumer.Consumer;
-import kafka_clients.producer.Producer;
+import kafka_clients.Consumer;
+import kafka_clients.Producer;
 
 import java.util.Observer;
 import java.util.Observable;
