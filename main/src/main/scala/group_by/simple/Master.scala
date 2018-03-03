@@ -15,8 +15,6 @@ import scala.collection.JavaConversions._;
 
 object Master extends Observer {
   var hostAndPort: String = "";
-  var topicName: String = "";
-  var groupId: String = "";
   var consumer: Consumer = null;
   var producer: Producer = null;
   var admin: Admin = null;
@@ -25,7 +23,7 @@ object Master extends Observer {
 
   def main(args: Array[String]) {
     if (args.length != 2) {
-      println("Usage: ./binary <host:port>\n");
+      println("Usage: ./binary <host:port> <numNodes>\n");
       System.exit(1);
     }
 
@@ -45,7 +43,12 @@ object Master extends Observer {
       val id = message.substring("connecting:".length());
       this.nodes = this.nodes :+ id;
       if (this.nodes.length == this.numNodes) {
-        this.producer.send("start");
+        println("Starting");
+        this.nodes.foreach { println };
+        var startCommand: StringBuilder = new StringBuilder;
+        startCommand ++= "start";
+        this.nodes.foreach { (x) => { startCommand += ' '; startCommand ++= x } };
+        this.producer.send(startCommand.toString);
       }
     }
   }
