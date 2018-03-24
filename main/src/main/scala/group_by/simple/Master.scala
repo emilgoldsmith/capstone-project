@@ -23,6 +23,9 @@ object Master extends Observer {
   var updatesReceived: Int = 0;
   var nodes: List[String] = List();
   var results: Map[Int, (Double, Int)] = Map[Int, (Double, Int)]();
+  var state = "connecting";
+  val validCommands = Array("group by");
+
 
   def main(args: Array[String]) {
     if (args.length != 2) {
@@ -38,21 +41,21 @@ object Master extends Observer {
     this.consumer = new Consumer(this.hostAndPort, List("master").asJava, "master-group");
     this.consumer.addObserver(this);
     this.producer = new Producer(this.hostAndPort, "all-workers");
+    println("Waiting for workers to connect");
   }
 
   def update(observable: Observable, arg: Object) {
     val message: String = arg.asInstanceOf[String];
-    if (message.indexOf("connecting:") == 0) {
+    if (state == "connecting") {
       val id = message.substring("connecting:".length());
       this.nodes = this.nodes :+ id;
       if (this.nodes.length == this.numNodes) {
+        println("All workers connected:");
         this.nodes.foreach { println };
-        var startCommand: StringBuilder = new StringBuilder;
-        startCommand ++= "start";
-        this.nodes.foreach { (x) => { startCommand += ' '; startCommand ++= x } };
-        this.producer.send(startCommand.toString);
+        this.state = "idle";
+        this.runCLI();
       }
-    } else {
+    } else if (this.state == "group-by") {
       val lines: Array[String] = message.split('\n');
       lines.foreach { singleLine => {
         val fields: Array[String] = singleLine.split(' ');
@@ -66,8 +69,35 @@ object Master extends Observer {
       this.updatesReceived += 1;
       if (this.updatesReceived == this.nodes.length) {
         // All nodes have sent us their replies
+        println("Group by results:");
         this.results.foreach { x => println(s"${x._1}: ${x._2._1 / x._2._2}")};
+        this.state = "idle";
+        this.runCLI();
       }
+    } else {
+      println("The following message was received at an unexpected time: \n${message}");
+    }
+  }
+
+  def isValidCommand(command: String): Boolean = {
+    return this.validCommands contains command;
+  }
+
+  def runCLI() {
+    var command = "";
+    while (!isValidCommand(command)) {
+      command = readLine();
+      if (command == null) {
+        println ("Goodbye!");
+        System.exit(0);
+      }
+    }
+    if (command == "group by") {
+      this.state = "group-by";
+      var startCommand: StringBuilder = new StringBuilder;
+      startCommand ++= "start";
+      this.nodes.foreach { (x) => { startCommand += ' '; startCommand ++= x } };
+      this.producer.send(startCommand.toString);
     }
   }
 }
