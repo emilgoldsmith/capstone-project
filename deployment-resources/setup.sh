@@ -104,7 +104,15 @@ fi
 
 # Get Github repo last so it doesn't mess with the caching above
 
-wget -O github-repo.zip https://github.com/emilgoldsmith/capstone-project/archive/master.zip
+sudo apt install -y git
+
+if [[ $? -ne 0 ]];
+then
+  echo "Error installing git" >&2
+  exit 1
+fi
+
+git clone https://github.com/emilgoldsmith/capstone-project.git
 
 if [[ $? -ne 0 ]];
 then
@@ -112,19 +120,11 @@ then
   exit 1
 fi
 
-unzip github-repo.zip && rm -rf github-repo.zip
-
-if [[ $? -ne 0 ]];
-then
-  echo "Error unzipping repo" >&2
-  exit 1
-fi
-
-cd capstone-project-master
+cd capstone-project
 
 # Build kafka clients
 
-cd kafka-clients && sbt stage && cd ..
+cd main && sbt stage && cd ..
 
 if [[ $? -ne 0 ]];
 then
@@ -134,7 +134,7 @@ fi
 
 # Setup useful symlinks
 
-ln -s ./kafka-clients/target/universal/stage/bin/consumer consumer
+ln -s ./main/target/universal/stage/bin/master master
 
 if [[ $? -ne 0 ]];
 then
@@ -142,7 +142,7 @@ then
   exit 1
 fi
 
-ln -s ./kafka-clients/target/universal/stage/bin/producer producer
+ln -s ./main/target/universal/stage/bin/worker worker
 
 if [[ $? -ne 0 ]];
 then
