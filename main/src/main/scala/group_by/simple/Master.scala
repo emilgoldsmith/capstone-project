@@ -25,6 +25,7 @@ object Master extends Observer {
   var results: Map[Int, (Double, Int)] = Map[Int, (Double, Int)]();
   var state = "connecting";
   val validCommands = Array("group by");
+  var startTime: Long = 0;
 
 
   def main(args: Array[String]) {
@@ -69,15 +70,17 @@ object Master extends Observer {
       this.updatesReceived += 1;
       if (this.updatesReceived == this.nodes.length) {
         // All nodes have sent us their replies
+        val timeTaken = (System.nanoTime() - this.startTime) / (1000 * 1000 * 1000);
         println("Group by results:");
         this.results.foreach { x => println(s"${x._1}: ${x._2._1 / x._2._2}")};
+        println(s"It took ${timeTaken} seconds to run the query");
         this.state = "idle";
         this.updatesReceived = 0;
         this.results = Map[Int, (Double, Int)]();
         this.runCLI();
       }
     } else {
-      println("The following message was received at an unexpected time: \n${message}");
+      println(s"The following message was received at an unexpected time: \n${message}");
     }
   }
 
@@ -100,6 +103,7 @@ object Master extends Observer {
       startCommand ++= "start";
       this.nodes.foreach { (x) => { startCommand += ' '; startCommand ++= x } };
       this.producer.send(startCommand.toString);
+      this.startTime = System.nanoTime();
     }
   }
 }
