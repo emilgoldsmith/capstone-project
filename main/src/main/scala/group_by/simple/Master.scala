@@ -21,6 +21,7 @@ object Master extends Observer {
   var admin: Admin = null;
   var numNodes: Int = 0;
   var updatesReceived: Int = 0;
+  var completesReceived: Int = 0;
   var nodes: List[String] = List();
   var results: Map[Int, (Double, Int)] = Map[Int, (Double, Int)]();
   var state = "connecting";
@@ -79,6 +80,16 @@ object Master extends Observer {
         this.results = Map[Int, (Double, Int)]();
         this.runCLI();
       }
+    } else if (this.state == "generate") {
+      if (message != "Done") {
+        println(s"Unexpected message that wasn't 'done' received: ${message}");
+      }
+      this.completesReceived += 1;
+      if (this.completesReceived == this.nodes.length) {
+        this.completesReceived = 0;
+        this.state = "idle";
+        this.runCLI();
+      }
     } else {
       println(s"The following message was received at an unexpected time: \n${message}");
     }
@@ -104,6 +115,12 @@ object Master extends Observer {
       this.nodes.foreach { (x) => { startCommand += ' '; startCommand ++= x } };
       this.producer.send(startCommand.toString);
       this.startTime = System.nanoTime();
+    } else if (command.indexOf("generate") == 0) {
+      val splitString: Array[String] = command.trim.split(" ");
+      val numDays = splitString(1).toInt;
+      val rowsPerDay = splitString(2).toInt;
+      this.producer.send(s"generate ${numDays} ${rowsPerDay}");
+      this.state = "generate";
     }
   }
 }

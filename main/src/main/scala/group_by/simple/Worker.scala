@@ -50,6 +50,11 @@ object Worker extends Observer {
     if (splitString.length > 0 && splitString(0) == "start") {
       splitString.slice(1, splitString.length).foreach { x => this.allWorkers = this.allWorkers :+ x };
       this.map();
+    } else if (splitString.length >= 3 && splitString(0) == "generate") {
+      val numDays = splitString(1).toInt;
+      val rowsPerDay = splitString(2).toInt;
+      this.data = generate(numDays, rowsPerDay);
+      this.producer.send("done");
     }
   }
 
