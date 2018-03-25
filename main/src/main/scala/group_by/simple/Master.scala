@@ -72,6 +72,8 @@ object Master extends Observer {
         println("Group by results:");
         this.results.foreach { x => println(s"${x._1}: ${x._2._1 / x._2._2}")};
         this.state = "idle";
+        this.updatesReceived = 0;
+        this.results = Map[Int, (Double, Int)]();
         this.runCLI();
       }
     } else {
