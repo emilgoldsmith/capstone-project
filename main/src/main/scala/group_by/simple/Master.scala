@@ -48,6 +48,7 @@ object Master extends Observer {
 
   def update(observable: Observable, arg: Object) {
     val message: String = arg.asInstanceOf[String];
+    println(state, updatesReceived, completesReceived, message);
     if (state == "connecting") {
       val id = message.substring("connecting:".length());
       this.nodes = this.nodes :+ id;
