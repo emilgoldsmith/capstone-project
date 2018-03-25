@@ -106,7 +106,7 @@ object Master extends Observer {
     while (!isValidCommand(command)) {
       command = readLine("aquery >> ");
       if (command == null) {
-        println ("Goodbye!");
+        println ("\nGoodbye!");
         System.exit(0);
       }
     }
