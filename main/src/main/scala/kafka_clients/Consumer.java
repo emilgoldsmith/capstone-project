@@ -59,7 +59,7 @@ public class Consumer extends Observable {
             kafkaConsumer = new KafkaConsumer<String, String>(configProperties);
             kafkaConsumer.subscribe(this.topicNames);
             // We only want to read messages that were sent to us after we started listening
-            kafkaConsumer.seekToEnd(kafkaConsumer.assignment());
+            kafkaConsumer.seekToEnd();
             //Start processing messages
             try {
                 while (true) {
