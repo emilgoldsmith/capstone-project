@@ -81,10 +81,11 @@ object Master extends Observer {
         this.runCLI();
       }
     } else if (this.state == "generate") {
-      if (message != "Done") {
+      if (message != "done") {
         println(s"Unexpected message that wasn't 'done' received: ${message}");
       }
       this.completesReceived += 1;
+      println(message);
       if (this.completesReceived == this.nodes.length) {
         this.completesReceived = 0;
         this.state = "idle";
@@ -117,6 +118,9 @@ object Master extends Observer {
       this.startTime = System.nanoTime();
     } else if (command.indexOf("generate") == 0) {
       val splitString: Array[String] = command.trim.split(" ");
+      if (splitString.length != 3) {
+        println("Incorrect usage, correct usage: generate <numberOfSeparateDays> <rowsPerDay>")
+      }
       val numDays = splitString(1).toInt;
       val rowsPerDay = splitString(2).toInt;
       this.producer.send(s"generate ${numDays} ${rowsPerDay}");
