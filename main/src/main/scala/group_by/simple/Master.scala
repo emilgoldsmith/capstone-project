@@ -86,7 +86,7 @@ object Master extends Observer {
   def runCLI() {
     var command = "";
     while (!isValidCommand(command)) {
-      command = readLine();
+      command = readLine("aquery >> ");
       if (command == null) {
         println ("Goodbye!");
         System.exit(0);
