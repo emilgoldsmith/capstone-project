@@ -13,6 +13,8 @@ import java.util.Observable;
 import java.util.Properties;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Vector;
+import java.util.List;
 
 /**
  * inspired by creation of sunilpatil on 12/28/15.
@@ -59,10 +61,14 @@ public class Consumer extends Observable {
 
             //Figure out where to start processing messages from
             kafkaConsumer = new KafkaConsumer<String, String>(configProperties);
-            kafkaConsumer.subscribe(this.topicNames);
+            List<TopicPartition> partitions = new Vector();
+            for (String topic : this.topicNames) {
+              partitions.add(new TopicPartition(topic, 0));
+            }
+            this.kafkaConsumer.assign(partitions);
             // We only want to read messages that were sent to us after we started listening
             // An empty set means seek to end for all partitions
-            kafkaConsumer.seekToEnd(new HashSet<TopicPartition>());
+            this.kafkaConsumer.seekToEnd(new HashSet<TopicPartition>());
             //Start processing messages
             try {
                 while (true) {
