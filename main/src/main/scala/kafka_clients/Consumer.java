@@ -5,12 +5,14 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.errors.WakeupException;
+import org.apache.kafka.common.TopicPartition;
 
 import java.util.Arrays;
 import java.util.Observer;
 import java.util.Observable;
 import java.util.Properties;
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * inspired by creation of sunilpatil on 12/28/15.
@@ -59,7 +61,8 @@ public class Consumer extends Observable {
             kafkaConsumer = new KafkaConsumer<String, String>(configProperties);
             kafkaConsumer.subscribe(this.topicNames);
             // We only want to read messages that were sent to us after we started listening
-            kafkaConsumer.seekToEnd();
+            // An empty set means seek to end for all partitions
+            kafkaConsumer.seekToEnd(new HashSet<TopicPartition>());
             //Start processing messages
             try {
                 while (true) {
