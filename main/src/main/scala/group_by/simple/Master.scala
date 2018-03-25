@@ -72,7 +72,7 @@ object Master extends Observer {
       this.updatesReceived += 1;
       if (this.updatesReceived == this.nodes.length) {
         // All nodes have sent us their replies
-        val timeTaken = (System.nanoTime() - this.startTime) / (1000 * 1000 * 1000);
+        val timeTaken = (System.nanoTime().toDouble - this.startTime.toDouble) / (1.0 * 1000 * 1000 * 1000);
         println("Group by results:");
         this.results.foreach { x => println(s"${x._1}: ${x._2._1 / x._2._2}")};
         println(s"It took ${timeTaken} seconds to run the query");
@@ -126,6 +126,8 @@ object Master extends Observer {
       val rowsPerDay = splitString(2).toInt;
       this.producer.send(s"generate ${numDays} ${rowsPerDay}");
       this.state = "generate";
+    } else {
+      println("I don't understand that command");
     }
   }
 }
