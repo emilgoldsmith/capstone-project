@@ -14,6 +14,8 @@ import scala.collection.JavaConverters._;
 import scala.collection.JavaConversions._;
 import scala.collection.mutable.Map;
 
+import scala.util.matching.Regex;
+
 object Master extends Observer {
   var hostAndPort: String = "";
   var consumer: Consumer = null;
@@ -25,7 +27,7 @@ object Master extends Observer {
   var nodes: List[String] = List();
   var results: Map[Int, (Double, Int)] = Map[Int, (Double, Int)]();
   var state = "connecting";
-  val validCommands = Array("group by");
+  val validCommands: Array[Regex] = Array("^group by\\s*$".r, "^generate \\d+ \\d+\\s*$".r);
   var startTime: Long = 0;
 
 
@@ -84,7 +86,7 @@ object Master extends Observer {
     } else if (this.state == "generate") {
       if (message != "done") {
         println(s"Unexpected message that wasn't 'done' received: ${message}");
-      }
+     }
       this.completesReceived += 1;
       println(message);
       if (this.completesReceived == this.nodes.length) {
@@ -98,12 +100,19 @@ object Master extends Observer {
   }
 
   def isValidCommand(command: String): Boolean = {
-    return this.validCommands contains command;
+    for (regex <- this.validCommands) {
+      val matches = !(regex findFirstIn command).isEmpty
+      if (matches) {
+        return true;
+      }
+    }
+    return false;
   }
 
   def runCLI() {
     var command = "";
     while (!isValidCommand(command)) {
+      println("I don't understand that command");
       command = readLine("aquery >> ");
       if (command == null) {
         println ("\nGoodbye!");
@@ -117,7 +126,7 @@ object Master extends Observer {
       this.nodes.foreach { (x) => { startCommand += ' '; startCommand ++= x } };
       this.producer.send(startCommand.toString);
       this.startTime = System.nanoTime();
-    } else if (command.indexOf("generate") == 0) {
+    } else if (command.indexOf("generate ") == 0) {
       val splitString: Array[String] = command.trim.split(" ");
       if (splitString.length != 3) {
         println("Incorrect usage, correct usage: generate <numberOfSeparateDays> <rowsPerDay>")
