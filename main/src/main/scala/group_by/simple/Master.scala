@@ -50,7 +50,7 @@ object Master extends Observer {
 
   def update(observable: Observable, arg: Object) {
     val message: String = arg.asInstanceOf[String];
-    println(state, updatesReceived, completesReceived, message);
+    // println(state, updatesReceived, completesReceived, message);
     if (state == "connecting") {
       val id = message.substring("connecting:".length());
       this.nodes = this.nodes :+ id;
@@ -110,9 +110,10 @@ object Master extends Observer {
   }
 
   def runCLI() {
-    var command = "";
+    var command = readLine("aquery >> ");
     while (!isValidCommand(command)) {
       println("I don't understand that command");
+      println(command);
       command = readLine("aquery >> ");
       if (command == null) {
         println ("\nGoodbye!");
@@ -133,6 +134,7 @@ object Master extends Observer {
       }
       val numDays = splitString(1).toInt;
       val rowsPerDay = splitString(2).toInt;
+      println(s"Setting test data to $numDays days with $rowsPerDay rows for each day");
       this.producer.send(s"generate ${numDays} ${rowsPerDay}");
       this.state = "generate";
     } else {
