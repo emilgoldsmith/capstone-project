@@ -16,6 +16,8 @@ import scala.collection.mutable.Map;
 
 import scala.util.matching.Regex;
 
+import scala.io.Source;
+
 object Master extends Observer {
   var hostAndPort: String = "";
   var consumer: Consumer = null;
@@ -27,9 +29,11 @@ object Master extends Observer {
   var nodes: List[String] = List();
   var results: Map[Int, (Double, Int)] = Map[Int, (Double, Int)]();
   var state = "connecting";
-  val validCommands: Array[Regex] = Array("^group by\\s*$".r, "^generate \\d+ \\d+\\s*$".r);
+  val validCommands: Array[Regex] = Array("^group by\\s*$".r, "^generate \\d+ \\d+\\s*$".r, "^read [\\w\\.]+\\s*$".r);
   var startTime: Long = 0;
-
+  var readingFromFile: Boolean = false;
+  var fileLines: List[String] = List[String]();
+  var fileLineIndex = 0;
 
   def main(args: Array[String]) {
     if (args.length != 2) {
@@ -109,17 +113,7 @@ object Master extends Observer {
     return false;
   }
 
-  def runCLI() {
-    var command = readLine("aquery >> ");
-    while (!isValidCommand(command)) {
-      println("I don't understand that command");
-      println(command);
-      command = readLine("aquery >> ");
-      if (command == null) {
-        println ("\nGoodbye!");
-        System.exit(0);
-      }
-    }
+  def runCommand(command: String) {
     if (command == "group by") {
       this.state = "group-by";
       var startCommand: StringBuilder = new StringBuilder;
@@ -137,8 +131,52 @@ object Master extends Observer {
       println(s"Setting test data to $numDays days with $rowsPerDay rows for each day");
       this.producer.send(s"generate ${numDays} ${rowsPerDay}");
       this.state = "generate";
+    } else if (command.indexOf("read ") == 0) {
+      val splitString: Array[String] = command.trim.split(" ");
+      if (splitString.length != 2) {
+        println("Incorrect usage, correct usage: read path/to/file");
+      }
+      readingFromFile = true;
+      fileLineIndex = 0;
+      fileLines = List[String]();
+      val source = Source.fromFile(splitString(1));
+      for (line <- source.getLines) {
+        fileLines = fileLines :+ line;
+      }
+      source.close;
+      this.runCLI();
     } else {
       println("I don't understand that command");
     }
+  }
+
+  def runCLI() {
+    if (!readingFromFile) {
+      var command = readLine("aquery >> ");
+      while (!isValidCommand(command)) {
+        println("I don't understand that command");
+        println(command);
+        command = readLine("aquery >> ");
+        if (command == null) {
+          println ("\nGoodbye!");
+          System.exit(0);
+        }
+      }
+      runCommand(command);
+    } else {
+      var command = fileLines(fileLineIndex);
+      if (!isValidCommand(command)) {
+        println("File contained invalid command:");
+        println(command);
+        readingFromFile = false;
+      } else {
+        fileLineIndex += 1;
+        if (fileLineIndex == fileLines.length) {
+          readingFromFile = false;
+        }
+        runCommand(command);
+      }
+    }
+
   }
 }
