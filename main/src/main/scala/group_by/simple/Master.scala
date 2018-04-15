@@ -52,6 +52,7 @@ object Master extends Observer {
     this.consumer = new Consumer(this.hostAndPort, List("master").asJava, "master-group");
     this.consumer.addObserver(this);
     this.producer = new Producer(this.hostAndPort, "all-workers");
+    this.runCLI();
   }
 
   def update(observable: Observable, arg: Object) {
