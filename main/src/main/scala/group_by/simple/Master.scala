@@ -129,11 +129,7 @@ object Master extends Observer {
       this.state = "connecting";
       for ( i <- 0 until this.numNodes ) {
         val ip = this.workerIps(i);
-        if (s"ssh $ip -p ${this.sshPort} setsid ./capstone-project/worker 10.230.12.40:9092 worker${i}".! != 0) {
-          println(s"Error starting worker on ip $ip");
-        } else {
-          println(s"worker $ip started successfully");
-        }
+        Process(s"ssh $ip -p ${this.sshPort} setsid ./capstone-project/worker 10.230.12.40:9092 worker${i}").lines
       }
       println("Waiting for workers to connect");
     }
@@ -200,6 +196,5 @@ object Master extends Observer {
         runCommand(command);
       }
     }
-
   }
 }
