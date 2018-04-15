@@ -18,6 +18,8 @@ import scala.util.matching.Regex;
 
 import scala.io.Source;
 
+import sys.process._
+
 object Master extends Observer {
   var hostAndPort: String = "";
   var consumer: Consumer = null;
@@ -29,27 +31,27 @@ object Master extends Observer {
   var nodes: List[String] = List();
   var results: Map[Int, (Double, Int)] = Map[Int, (Double, Int)]();
   var state = "connecting";
-  val validCommands: Array[Regex] = Array("^group by\\s*$".r, "^generate \\d+ \\d+\\s*$".r, "^read [\\w\\.]+\\s*$".r);
+  val validCommands: Array[Regex] = Array("^group by\\s*$".r, "^generate \\d+ \\d+\\s*$".r, "^read [\\w\\.]+\\s*$".r, "^nodes \\d$".r);
   var startTime: Long = 0;
   var readingFromFile: Boolean = false;
   var fileLines: List[String] = List[String]();
   var fileLineIndex = 0;
+  val workerIps = List("10.230.12.41", "10.230.12.42", "10.230.12.43", "10.230.12.44");
+  val sshPort = "4410";
 
   def main(args: Array[String]) {
-    if (args.length != 2) {
-      println("Usage: ./binary <host:port> <numNodes>\n");
+    if (args.length != 1) {
+      println("Usage: ./binary <host:port>\n");
       System.exit(1);
     }
 
     this.hostAndPort = args(0);
-    this.numNodes = args(1).toInt;
 
     this.admin = new Admin(this.hostAndPort);
     this.admin.createTopics(List("master", "all-workers").asJava);
     this.consumer = new Consumer(this.hostAndPort, List("master").asJava, "master-group");
     this.consumer.addObserver(this);
     this.producer = new Producer(this.hostAndPort, "all-workers");
-    println("Waiting for workers to connect");
   }
 
   def update(observable: Observable, arg: Object) {
@@ -114,6 +116,26 @@ object Master extends Observer {
   }
 
   def runCommand(command: String) {
+    if (command.indexOf("nodes") == 0) {
+      val splitString: Array[String] = command.trim.split(" ");
+      this.workerIps.foreach { ip => {
+        if (s"ssh $ip -p ${this.sshPort} ./capstone-project/deployment-resources/kill-local-workers.sh".! != 0) {
+          println(s"Error killing workers on ip $ip");
+        }
+      }}
+      this.nodes = List();
+      this.numNodes = splitString(1).toInt;
+      this.state = "connecting";
+      for ( i <- 0 until this.numNodes ) {
+        val ip = this.workerIps(i);
+        if (s"ssh $ip -p ${this.sshPort} setsid ./capstone-project/worker 10.230.12.40:9092 worker${i}".! != 0) {
+          println(s"Error starting worker on ip $ip");
+        } else {
+          println(s"worker $ip started successfully");
+        }
+      }
+      println("Waiting for workers to connect");
+    }
     if (command == "group by") {
       this.state = "group-by";
       var startCommand: StringBuilder = new StringBuilder;
